@@ -8,6 +8,8 @@ function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('users');
   const [toast, setToast] = useState({ show: false, type: '', message: '' });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showUserDetails, setShowUserDetails] = useState(null);
 
   // Get base URL from environment variables
   const base_url = process.env.REACT_APP_NODE_ENV === 'development' 
@@ -102,206 +104,305 @@ function App() {
   // Generate a deterministic color based on the name
   const getAvatarColor = (name) => {
     const colors = [
-      "#10b981", // emerald-500
-      "#3b82f6", // blue-500
-      "#8b5cf6", // purple-500
-      "#ec4899", // pink-500
-      "#f59e0b", // amber-500
-      "#6366f1", // indigo-500
-      "#f43f5e", // rose-500
-      "#06b6d4", // cyan-500
+      "#FF6B6B", // coral red
+      "#4ECDC4", // turquoise
+      "#FFD166", // yellow
+      "#6A0572", // purple
+      "#1A535C", // dark teal
+      "#F72585", // pink
+      "#4361EE", // blue
+      "#7209B7", // violet
     ];
     
     const colorIndex = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
     return colors[colorIndex];
   };
 
+  // Filter users based on search term
+  const filteredUsers = searchTerm 
+    ? recordData.filter(user => 
+        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : recordData;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-gray-100">
+    <div className="app-container">
       {/* Toast notification */}
       {toast.show && (
-        <div 
-          className={`fixed top-4 right-4 z-50 p-4 rounded-md shadow-lg ${
-            toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-          } text-white`}
-        >
-          {toast.message}
+        <div className={`toast ${toast.type === 'success' ? 'toast-success' : 'toast-error'}`}>
+          <div className="toast-icon">
+            {toast.type === 'success' ? (
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            )}
+          </div>
+          <div className="toast-message">{toast.message}</div>
         </div>
       )}
 
-      {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-gray-800 bg-gray-900 shadow-md">
-        <div className="container mx-auto px-4 flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500">
+      {/* User details modal */}
+      {showUserDetails && (
+        <div className="modal-overlay" onClick={() => setShowUserDetails(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowUserDetails(null)}>×</button>
+            <div className="modal-header" style={{ backgroundColor: getAvatarColor(showUserDetails.name || 'User') }}>
+              <div className="modal-avatar">
+                {getInitials(showUserDetails.name || 'User')}
+              </div>
+            </div>
+            <div className="modal-body">
+              <h2>{showUserDetails.name || 'Unknown User'}</h2>
+              <p className="modal-email">{showUserDetails.email || 'No email'}</p>
+              <div className="modal-details">
+                <div className="modal-detail-item">
+                  <span className="modal-detail-label">User ID</span>
+                  <span className="modal-detail-value">{showUserDetails.id || 'N/A'}</span>
+                </div>
+                <div className="modal-detail-item">
+                  <span className="modal-detail-label">Status</span>
+                  <span className="modal-detail-value status-active">Active</span>
+                </div>
+                <div className="modal-detail-item">
+                  <span className="modal-detail-label">Joined</span>
+                  <span className="modal-detail-value">Today</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="app-sidebar">
+        <div className="sidebar-header">
+          <div className="logo">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
               <circle cx="9" cy="7" r="4"></circle>
               <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
               <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
             </svg>
-            <h1 className="text-xl font-bold text-white">User Management</h1>
+            <span>UserHub</span>
           </div>
         </div>
-      </header>
-      
-      <main className="container mx-auto px-4 py-8">
-        {/* Tabs */}
-        <div className="mb-6">
-          <div className="flex border-b border-gray-800">
-            <button
-              className={`px-4 py-2 font-medium ${
-                activeTab === 'users'
-                  ? 'border-b-2 border-purple-500 text-purple-400'
-                  : 'text-gray-400 hover:text-gray-200'
-              }`}
-              onClick={() => setActiveTab('users')}
-            >
-              <div className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                Users List
-              </div>
-            </button>
-            <button
-              className={`px-4 py-2 font-medium ${
-                activeTab === 'add'
-                  ? 'border-b-2 border-purple-500 text-purple-400'
-                  : 'text-gray-400 hover:text-gray-200'
-              }`}
-              onClick={() => setActiveTab('add')}
-            >
-              <div className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="8.5" cy="7" r="4"></circle>
-                  <line x1="20" x2="20" y1="8" y2="14"></line>
-                  <line x1="23" x2="17" y1="11" y2="11"></line>
-                </svg>
-                Add User
-              </div>
-            </button>
-          </div>
-        </div>
+        <nav className="sidebar-nav">
+          <button 
+            className={`nav-item ${activeTab === 'users' ? 'active' : ''}`}
+            onClick={() => setActiveTab('users')}
+          >
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span>Users</span>
+          </button>
+          <button 
+            className={`nav-item ${activeTab === 'add' ? 'active' : ''}`}
+            onClick={() => setActiveTab('add')}
+          >
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+            <span>Add User</span>
+          </button>
+        </nav>
+      </div>
 
-        {/* Users List Tab */}
-        {activeTab === 'users' && (
-          <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
-            <div className="p-4 border-b border-gray-700">
-              <h2 className="text-lg font-semibold text-white">Users List</h2>
-              <p className="text-sm text-gray-400">View all registered users in the system</p>
+      <main className="app-main">
+        <header className="main-header">
+          <h1>{activeTab === 'users' ? 'User Management' : 'Add New User'}</h1>
+          {activeTab === 'users' && (
+            <div className="search-container">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="search-icon">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input 
+                type="text" 
+                placeholder="Search users..." 
+                className="search-input"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <button className="search-clear" onClick={() => setSearchTerm('')}>×</button>
+              )}
             </div>
-            <div className="p-4">
+          )}
+        </header>
+
+        <div className="main-content">
+          {/* Users List Tab */}
+          {activeTab === 'users' && (
+            <div className="users-container">
               {isLoading ? (
-                <div className="flex justify-center py-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent"></div>
+                <div className="loading-container">
+                  <div className="loading-spinner"></div>
+                  <p>Loading users...</p>
                 </div>
-              ) : Array.isArray(recordData) && recordData.length > 0 ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {recordData.map((user, index) => (
-                    <div key={index} className="border border-gray-700 rounded-lg overflow-hidden hover:shadow-purple-glow transition-all bg-gray-900">
-                      <div className="flex items-center gap-4 bg-gray-800 p-4">
-                        <div 
-                          className="h-12 w-12 rounded-full flex items-center justify-center text-white"
-                          style={{ backgroundColor: getAvatarColor(user.name || 'User') }}
-                        >
-                          {getInitials(user.name || 'User')}
-                        </div>
-                        <div>
-                          <p className="font-medium text-white">{user.name || 'Unknown'}</p>
-                          <p className="text-xs text-gray-400">User #{index + 1}</p>
-                        </div>
+              ) : filteredUsers.length > 0 ? (
+                <div className="users-grid">
+                  {filteredUsers.map((user, index) => (
+                    <div 
+                      key={index} 
+                      className="user-card"
+                      onClick={() => setShowUserDetails(user)}
+                    >
+                      <div className="user-card-banner" style={{ backgroundColor: getAvatarColor(user.name || 'User') }}></div>
+                      <div className="user-card-avatar" style={{ backgroundColor: getAvatarColor(user.name || 'User') }}>
+                        {getInitials(user.name || 'User')}
                       </div>
-                      <div className="p-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-300">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-                          </svg>
-                          <span>{user.email || 'No email'}</span>
+                      <div className="user-card-content">
+                        <h3 className="user-name">{user.name || 'Unknown'}</h3>
+                        <p className="user-email">{user.email || 'No email'}</p>
+                        <div className="user-status">
+                          <span className="status-dot"></span>
+                          <span>Active</span>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4 text-gray-600">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                  </svg>
-                  <h3 className="text-lg font-medium text-white">No users found</h3>
-                  <p className="text-sm text-gray-400">Add your first user to get started</p>
+                <div className="empty-state">
+                  <div className="empty-icon">
+                    <svg viewBox="0 0 24 24" width="64" height="64" stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                  </div>
+                  <h3>No users found</h3>
+                  <p>{searchTerm ? 'Try a different search term' : 'Add your first user to get started'}</p>
+                  {searchTerm && (
+                    <button className="btn btn-secondary" onClick={() => setSearchTerm('')}>Clear Search</button>
+                  )}
+                  {!searchTerm && (
+                    <button className="btn btn-primary" onClick={() => setActiveTab('add')}>Add User</button>
+                  )}
                 </div>
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Add User Tab */}
-        {activeTab === 'add' && (
-          <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
-            <div className="p-4 border-b border-gray-700">
-              <h2 className="text-lg font-semibold text-white">Add New User</h2>
-              <p className="text-sm text-gray-400">Enter the details to create a new user</p>
-            </div>
-            <div className="p-4">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-200">Full Name</label>
-                  <input
-                    id="name"
-                    name="name"
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Enter user name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                  />
+          {/* Add User Tab */}
+          {activeTab === 'add' && (
+            <div className="add-user-container">
+              <div className="form-card">
+                <form onSubmit={handleSubmit} className="add-user-form">
+                  <div className="form-group">
+                    <label htmlFor="name">Full Name</label>
+                    <div className="input-container">
+                      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="input-icon">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                      <input
+                        id="name"
+                        name="name"
+                        className="form-input"
+                        placeholder="Enter user name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="email">Email Address</label>
+                    <div className="input-container">
+                      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="input-icon">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                      </svg>
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        className="form-input"
+                        placeholder="Enter email address"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary btn-submit"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span className="spinner"></span>
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                          <circle cx="8.5" cy="7" r="4"></circle>
+                          <line x1="20" x2="20" y1="8" y2="14"></line>
+                          <line x1="23" x2="17" y1="11" y2="11"></line>
+                        </svg>
+                        Create User
+                      </>
+                    )}
+                  </button>
+                </form>
+                <div className="form-illustration">
+                  <svg viewBox="0 0 24 24" width="120" height="120" stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <line x1="20" x2="20" y1="8" y2="14"></line>
+                    <line x1="23" x2="17" y1="11" y2="11"></line>
+                  </svg>
                 </div>
-                
-                <div className="space-y-2">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-200">Email Address</label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Enter email address"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                
-                <button 
-                  type="submit" 
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <span className="inline-block mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-                      Creating...
-                    </>
-                  ) : (
-                    "Create User"
-                  )}
-                </button>
-              </form>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </main>
 
-      {/* Add some basic styles */}
       <style jsx>{`
-        /* Basic reset and styles */
+        /* Modern UI Styles */
+        :root {
+          --primary: #7C3AED;
+          --primary-light: #8B5CF6;
+          --primary-dark: #6D28D9;
+          --secondary: #10B981;
+          --danger: #EF4444;
+          --success: #10B981;
+          --warning: #F59E0B;
+          --info: #3B82F6;
+          --background: #F9FAFB;
+          --card-bg: #FFFFFF;
+          --text: #1F2937;
+          --text-light: #6B7280;
+          --border: #E5E7EB;
+          --border-light: #F3F4F6;
+          --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+          --radius: 0.5rem;
+          --radius-lg: 1rem;
+          --transition: all 0.2s ease;
+        }
+
         * {
           box-sizing: border-box;
           margin: 0;
@@ -311,383 +412,652 @@ function App() {
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
           line-height: 1.5;
-          color: #f3f4f6;
-          background-color: #121212;
+          color: var(--text);
+          background-color: var(--background);
         }
-        
-        .container {
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-        
-        .min-h-screen {
-          min-height: 100vh;
-        }
-        
-        .bg-gradient-to-b {
-          background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
-        }
-        
-        .from-gray-900 {
-          --tw-gradient-from: #111827;
-          --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(17, 24, 39, 0));
-        }
-        
-        .to-black {
-          --tw-gradient-to: #000000;
-        }
-        
-        .bg-gray-900 {
-          background-color: #111827;
-        }
-        
-        .bg-gray-800 {
-          background-color: #1f2937;
-        }
-        
-        .bg-gray-700 {
-          background-color: #374151;
-        }
-        
-        .text-white {
-          color: #ffffff;
-        }
-        
-        .text-gray-100 {
-          color: #f3f4f6;
-        }
-        
-        .text-gray-200 {
-          color: #e5e7eb;
-        }
-        
-        .text-gray-300 {
-          color: #d1d5db;
-        }
-        
-        .text-gray-400 {
-          color: #9ca3af;
-        }
-        
-        .text-gray-600 {
-          color: #4b5563;
-        }
-        
-        .border-gray-600 {
-          border-color: #4b5563;
-        }
-        
-        .border-gray-700 {
-          border-color: #374151;
-        }
-        
-        .border-gray-800 {
-          border-color: #1f2937;
-        }
-        
-        .rounded-lg {
-          border-radius: 0.5rem;
-        }
-        
-        .shadow-lg {
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
-        }
-        
-        .hover\\:shadow-purple-glow:hover {
-          box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
-        }
-        
-        .border {
-          border-width: 1px;
-          border-style: solid;
-        }
-        
-        .border-b {
-          border-bottom-width: 1px;
-          border-bottom-style: solid;
-        }
-        
-        .overflow-hidden {
-          overflow: hidden;
-        }
-        
-        .p-4 {
-          padding: 1rem;
-        }
-        
-        .px-4 {
-          padding-left: 1rem;
-          padding-right: 1rem;
-        }
-        
-        .py-2 {
-          padding-top: 0.5rem;
-          padding-bottom: 0.5rem;
-        }
-        
-        .py-8 {
-          padding-top: 2rem;
-          padding-bottom: 2rem;
-        }
-        
-        .mb-4 {
-          margin-bottom: 1rem;
-        }
-        
-        .mb-6 {
-          margin-bottom: 1.5rem;
-        }
-        
-        .mr-2 {
-          margin-right: 0.5rem;
-        }
-        
-        .flex {
+
+        /* App Layout */
+        .app-container {
           display: flex;
+          min-height: 100vh;
+          position: relative;
         }
-        
-        .items-center {
+
+        /* Sidebar */
+        .app-sidebar {
+          width: 240px;
+          background: var(--card-bg);
+          border-right: 1px solid var(--border);
+          display: flex;
+          flex-direction: column;
+          position: fixed;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          z-index: 10;
+          box-shadow: var(--shadow);
+        }
+
+        .sidebar-header {
+          padding: 1.5rem;
+          border-bottom: 1px solid var(--border-light);
+        }
+
+        .logo {
+          display: flex;
           align-items: center;
-        }
-        
-        .justify-center {
-          justify-content: center;
-        }
-        
-        .justify-between {
-          justify-content: space-between;
-        }
-        
-        .gap-2 {
-          gap: 0.5rem;
-        }
-        
-        .gap-4 {
-          gap: 1rem;
-        }
-        
-        .text-xl {
-          font-size: 1.25rem;
-        }
-        
-        .text-lg {
-          font-size: 1.125rem;
-        }
-        
-        .text-sm {
-          font-size: 0.875rem;
-        }
-        
-        .text-xs {
-          font-size: 0.75rem;
-        }
-        
-        .font-bold {
+          gap: 0.75rem;
           font-weight: 700;
+          font-size: 1.25rem;
+          color: var(--primary);
         }
-        
-        .font-semibold {
-          font-weight: 600;
+
+        .logo svg {
+          stroke: var(--primary);
         }
-        
-        .font-medium {
-          font-weight: 500;
+
+        .sidebar-nav {
+          padding: 1rem 0;
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
         }
-        
-        .text-purple-400 {
-          color: #a78bfa;
+
+        .nav-item {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.75rem 1.5rem;
+          color: var(--text-light);
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          text-align: left;
+          font-size: 1rem;
+          transition: var(--transition);
+          border-left: 3px solid transparent;
         }
-        
-        .text-purple-500 {
-          color: #8b5cf6;
+
+        .nav-item:hover {
+          background-color: var(--border-light);
+          color: var(--text);
         }
-        
-        .border-purple-500 {
-          border-color: #8b5cf6;
+
+        .nav-item.active {
+          color: var(--primary);
+          background-color: rgba(124, 58, 237, 0.1);
+          border-left: 3px solid var(--primary);
         }
-        
-        .bg-purple-500 {
-          background-color: #8b5cf6;
+
+        .nav-item.active svg {
+          stroke: var(--primary);
         }
-        
-        .bg-purple-600 {
-          background-color: #7c3aed;
+
+        /* Main Content */
+        .app-main {
+          flex: 1;
+          margin-left: 240px;
+          padding: 2rem;
+          display: flex;
+          flex-direction: column;
         }
-        
-        .hover\\:bg-purple-700:hover {
-          background-color: #6d28d9;
+
+        .main-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2rem;
         }
-        
-        .bg-green-500 {
-          background-color: #10b981;
+
+        .main-header h1 {
+          font-size: 1.75rem;
+          font-weight: 700;
+          color: var(--text);
         }
-        
-        .bg-red-500 {
-          background-color: #ef4444;
+
+        .search-container {
+          position: relative;
+          width: 300px;
         }
-        
-        .hover\\:text-gray-200:hover {
-          color: #e5e7eb;
+
+        .search-icon {
+          position: absolute;
+          left: 1rem;
+          top: 50%;
+          transform: translateY(-50%);
+          color: var(--text-light);
         }
-        
-        .transition-all {
-          transition-property: all;
-          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-          transition-duration: 150ms;
+
+        .search-input {
+          width: 100%;
+          padding: 0.75rem 1rem 0.75rem 3rem;
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          font-size: 0.875rem;
+          transition: var(--transition);
         }
-        
-        .transition-colors {
-          transition-property: color, background-color, border-color;
-          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-          transition-duration: 150ms;
+
+        .search-input:focus {
+          outline: none;
+          border-color: var(--primary-light);
+          box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
         }
-        
-        .rounded-md {
-          border-radius: 0.375rem;
+
+        .search-clear {
+          position: absolute;
+          right: 1rem;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          color: var(--text-light);
+          font-size: 1.25rem;
+          cursor: pointer;
+          line-height: 1;
         }
-        
-        .rounded-full {
-          border-radius: 9999px;
+
+        /* Users Grid */
+        .users-container {
+          flex: 1;
         }
-        
-        .h-16 {
-          height: 4rem;
+
+        .users-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 1.5rem;
         }
-        
-        .h-12 {
-          height: 3rem;
+
+        .user-card {
+          background: var(--card-bg);
+          border-radius: var(--radius);
+          overflow: hidden;
+          box-shadow: var(--shadow);
+          transition: var(--transition);
+          cursor: pointer;
+          position: relative;
+          border: 1px solid var(--border);
         }
-        
-        .h-8 {
-          height: 2rem;
+
+        .user-card:hover {
+          transform: translateY(-4px);
+          box-shadow: var(--shadow-lg);
         }
-        
-        .h-4 {
-          height: 1rem;
-        }
-        
-        .w-12 {
-          width: 3rem;
-        }
-        
-        .w-8 {
-          width: 2rem;
-        }
-        
-        .w-4 {
-          width: 1rem;
-        }
-        
-        .w-full {
+
+        .user-card-banner {
+          height: 80px;
           width: 100%;
         }
-        
-        .space-y-4 > * + * {
+
+        .user-card-avatar {
+          width: 70px;
+          height: 70px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: white;
+          position: absolute;
+          top: 45px;
+          left: 20px;
+          border: 4px solid white;
+        }
+
+        .user-card-content {
+          padding: 3rem 1.5rem 1.5rem;
+        }
+
+        .user-name {
+          font-size: 1.125rem;
+          font-weight: 600;
+          margin-bottom: 0.25rem;
+        }
+
+        .user-email {
+          color: var(--text-light);
+          font-size: 0.875rem;
+          margin-bottom: 1rem;
+        }
+
+        .user-status {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.75rem;
+          color: var(--success);
+        }
+
+        .status-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background-color: var(--success);
+        }
+
+        /* Empty State */
+        .empty-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 4rem 2rem;
+          text-align: center;
+        }
+
+        .empty-icon {
+          color: var(--text-light);
+          margin-bottom: 1.5rem;
+          opacity: 0.5;
+        }
+
+        .empty-state h3 {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+          color: var(--text-light);
+          margin-bottom: 1.5rem;
+        }
+
+        /* Add User Form */
+        .add-user-container {
+          max-width: 800px;
+          margin: 0 auto;
+        }
+
+        .form-card {
+          background: var(--card-bg);
+          border-radius: var(--radius-lg);
+          box-shadow: var(--shadow);
+          padding: 2rem;
+          display: flex;
+          border: 1px solid var(--border);
+        }
+
+        .add-user-form {
+          flex: 1;
+        }
+
+        .form-group {
+          margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+          display: block;
+          margin-bottom: 0.5rem;
+          font-weight: 500;
+        }
+
+        .input-container {
+          position: relative;
+        }
+
+        .input-icon {
+          position: absolute;
+          left: 1rem;
+          top: 50%;
+          transform: translateY(-50%);
+          color: var(--text-light);
+        }
+
+        .form-input {
+          width: 100%;
+          padding: 0.75rem 1rem 0.75rem 3rem;
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          font-size: 1rem;
+          transition: var(--transition);
+        }
+
+        .form-input:focus {
+          outline: none;
+          border-color: var(--primary-light);
+          box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+        }
+
+        .form-illustration {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding-left: 2rem;
+          color: var(--primary-light);
+          opacity: 0.7;
+        }
+
+        /* Buttons */
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1.5rem;
+          border-radius: var(--radius);
+          font-weight: 500;
+          cursor: pointer;
+          transition: var(--transition);
+          border: none;
+          font-size: 1rem;
+        }
+
+        .btn-primary {
+          background-color: var(--primary);
+          color: white;
+        }
+
+        .btn-primary:hover {
+          background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+          background-color: var(--border-light);
+          color: var(--text);
+        }
+
+        .btn-secondary:hover {
+          background-color: var(--border);
+        }
+
+        .btn-submit {
+          width: 100%;
           margin-top: 1rem;
+          padding: 0.875rem;
         }
-        
-        .space-y-2 > * + * {
-          margin-top: 0.5rem;
+
+        .btn:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
         }
-        
-        .grid {
-          display: grid;
+
+        /* Loading States */
+        .loading-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 4rem;
         }
-        
-        .animate-spin {
+
+        .loading-spinner {
+          width: 40px;
+          height: 40px;
+          border: 3px solid rgba(124, 58, 237, 0.3);
+          border-radius: 50%;
+          border-top-color: var(--primary);
           animation: spin 1s linear infinite;
+          margin-bottom: 1rem;
         }
-        
+
+        .spinner {
+          display: inline-block;
+          width: 1rem;
+          height: 1rem;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-radius: 50%;
+          border-top-color: white;
+          animation: spin 1s linear infinite;
+          margin-right: 0.5rem;
+        }
+
         @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
           to {
             transform: rotate(360deg);
           }
         }
-        
-        .border-t-transparent {
-          border-top-color: transparent;
-        }
-        
-        .focus\\:outline-none:focus {
-          outline: 2px solid transparent;
-          outline-offset: 2px;
-        }
-        
-        .focus\\:ring-2:focus {
-          --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-          --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-          box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
-        }
-        
-        .focus\\:ring-purple-500:focus {
-          --tw-ring-color: #8b5cf6;
-        }
-        
-        .focus\\:border-transparent:focus {
-          border-color: transparent;
-        }
-        
-        .fixed {
+
+        /* Toast Notifications */
+        .toast {
           position: fixed;
+          top: 1.5rem;
+          right: 1.5rem;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 1rem 1.5rem;
+          border-radius: var(--radius);
+          color: white;
+          box-shadow: var(--shadow-lg);
+          z-index: 100;
+          animation: slideIn 0.3s ease forwards;
         }
-        
-        .sticky {
-          position: sticky;
+
+        .toast-success {
+          background-color: var(--success);
         }
-        
-        .top-0 {
-          top: 0;
+
+        .toast-error {
+          background-color: var(--danger);
         }
-        
-        .top-4 {
-          top: 1rem;
+
+        .toast-icon {
+          display: flex;
         }
-        
-        .right-4 {
-          right: 1rem;
+
+        .toast-message {
+          font-weight: 500;
         }
-        
-        .z-10 {
-          z-index: 10;
-        }
-        
-        .z-50 {
-          z-index: 50;
-        }
-        
-        .shadow-md {
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-        }
-        
-        .text-center {
-          text-align: center;
-        }
-        
-        .flex-col {
-          flex-direction: column;
-        }
-        
-        .block {
-          display: block;
-        }
-        
-        .inline-block {
-          display: inline-block;
-        }
-        
-        /* Media queries for responsive design */
-        @media (min-width: 640px) {
-          .sm\\:grid-cols-2 {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+
+        @keyframes slideIn {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
           }
         }
-        
-        @media (min-width: 1024px) {
-          .lg\\:grid-cols-3 {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+
+        /* Modal */
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 50;
+          animation: fadeIn 0.2s ease;
+        }
+
+        .modal-content {
+          background: var(--card-bg);
+          border-radius: var(--radius-lg);
+          width: 90%;
+          max-width: 500px;
+          position: relative;
+          overflow: hidden;
+          animation: scaleIn 0.3s ease;
+        }
+
+        .modal-close {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          background: rgba(255, 255, 255, 0.5);
+          border: none;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.5rem;
+          cursor: pointer;
+          color: white;
+          z-index: 10;
+        }
+
+        .modal-header {
+          height: 150px;
+          position: relative;
+        }
+
+        .modal-avatar {
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 2.5rem;
+          font-weight: 700;
+          color: white;
+          position: absolute;
+          bottom: -50px;
+          left: 50%;
+          transform: translateX(-50%);
+          border: 5px solid white;
+        }
+
+        .modal-body {
+          padding: 4rem 2rem 2rem;
+          text-align: center;
+        }
+
+        .modal-body h2 {
+          font-size: 1.5rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .modal-email {
+          color: var(--text-light);
+          margin-bottom: 1.5rem;
+        }
+
+        .modal-details {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          text-align: left;
+          border-top: 1px solid var(--border-light);
+          padding-top: 1.5rem;
+        }
+
+        .modal-detail-item {
+          display: flex;
+          justify-content: space-between;
+        }
+
+        .modal-detail-label {
+          color: var(--text-light);
+          font-size: 0.875rem;
+        }
+
+        .modal-detail-value {
+          font-weight: 500;
+        }
+
+        .status-active {
+          color: var(--success);
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes scaleIn {
+          from {
+            transform: scale(0.9);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+          .app-sidebar {
+            width: 80px;
+          }
+          
+          .logo span,
+          .nav-item span {
+            display: none;
+          }
+          
+          .nav-item {
+            justify-content: center;
+            padding: 0.75rem;
+          }
+          
+          .app-main {
+            margin-left: 80px;
+            padding: 1.5rem;
+          }
+          
+          .form-card {
+            flex-direction: column;
+          }
+          
+          .form-illustration {
+            display: none;
+          }
+          
+          .search-container {
+            width: 200px;
+          }
+        }
+
+        @media (max-width: 576px) {
+          .app-sidebar {
+            width: 100%;
+            height: 60px;
+            flex-direction: row;
+            bottom: 0;
+            top: auto;
+            border-top: 1px solid var(--border);
+            border-right: none;
+          }
+          
+          .sidebar-header {
+            display: none;
+          }
+          
+          .sidebar-nav {
+            flex-direction: row;
+            padding: 0;
+            width: 100%;
+          }
+          
+          .nav-item {
+            flex: 1;
+            justify-content: center;
+            border-left: none;
+            border-top: 3px solid transparent;
+          }
+          
+          .nav-item.active {
+            border-left: none;
+            border-top: 3px solid var(--primary);
+          }
+          
+          .app-main {
+            margin-left: 0;
+            margin-bottom: 60px;
+            padding: 1rem;
+          }
+          
+          .main-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+          }
+          
+          .search-container {
+            width: 100%;
           }
         }
       `}</style>
