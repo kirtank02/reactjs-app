@@ -117,7 +117,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-gray-100">
       {/* Toast notification */}
       {toast.show && (
         <div 
@@ -130,16 +130,16 @@ function App() {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b bg-white shadow-sm">
+      <header className="sticky top-0 z-10 border-b border-gray-800 bg-gray-900 shadow-md">
         <div className="container mx-auto px-4 flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500">
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
               <circle cx="9" cy="7" r="4"></circle>
               <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
               <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
             </svg>
-            <h1 className="text-xl font-bold">User Management</h1>
+            <h1 className="text-xl font-bold text-white">User Management</h1>
           </div>
         </div>
       </header>
@@ -147,12 +147,12 @@ function App() {
       <main className="container mx-auto px-4 py-8">
         {/* Tabs */}
         <div className="mb-6">
-          <div className="flex border-b">
+          <div className="flex border-b border-gray-800">
             <button
               className={`px-4 py-2 font-medium ${
                 activeTab === 'users'
-                  ? 'border-b-2 border-emerald-500 text-emerald-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'border-b-2 border-purple-500 text-purple-400'
+                  : 'text-gray-400 hover:text-gray-200'
               }`}
               onClick={() => setActiveTab('users')}
             >
@@ -169,8 +169,8 @@ function App() {
             <button
               className={`px-4 py-2 font-medium ${
                 activeTab === 'add'
-                  ? 'border-b-2 border-emerald-500 text-emerald-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'border-b-2 border-purple-500 text-purple-400'
+                  : 'text-gray-400 hover:text-gray-200'
               }`}
               onClick={() => setActiveTab('add')}
             >
@@ -189,21 +189,21 @@ function App() {
 
         {/* Users List Tab */}
         {activeTab === 'users' && (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="p-4 border-b">
-              <h2 className="text-lg font-semibold">Users List</h2>
-              <p className="text-sm text-gray-500">View all registered users in the system</p>
+          <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
+            <div className="p-4 border-b border-gray-700">
+              <h2 className="text-lg font-semibold text-white">Users List</h2>
+              <p className="text-sm text-gray-400">View all registered users in the system</p>
             </div>
             <div className="p-4">
               {isLoading ? (
                 <div className="flex justify-center py-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent"></div>
                 </div>
               ) : Array.isArray(recordData) && recordData.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {recordData.map((user, index) => (
-                    <div key={index} className="border rounded-lg overflow-hidden hover:shadow-md transition-all">
-                      <div className="flex items-center gap-4 bg-gray-50 p-4">
+                    <div key={index} className="border border-gray-700 rounded-lg overflow-hidden hover:shadow-purple-glow transition-all bg-gray-900">
+                      <div className="flex items-center gap-4 bg-gray-800 p-4">
                         <div 
                           className="h-12 w-12 rounded-full flex items-center justify-center text-white"
                           style={{ backgroundColor: getAvatarColor(user.name || 'User') }}
@@ -211,12 +211,12 @@ function App() {
                           {getInitials(user.name || 'User')}
                         </div>
                         <div>
-                          <p className="font-medium">{user.name || 'Unknown'}</p>
-                          <p className="text-xs text-gray-500">User #{index + 1}</p>
+                          <p className="font-medium text-white">{user.name || 'Unknown'}</p>
+                          <p className="text-xs text-gray-400">User #{index + 1}</p>
                         </div>
                       </div>
                       <div className="p-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <rect width="20" height="16" x="2" y="4" rx="2"></rect>
                             <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
@@ -229,14 +229,14 @@ function App() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4 text-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4 text-gray-600">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                     <circle cx="9" cy="7" r="4"></circle>
                     <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                   </svg>
-                  <h3 className="text-lg font-medium">No users found</h3>
-                  <p className="text-sm text-gray-500">Add your first user to get started</p>
+                  <h3 className="text-lg font-medium text-white">No users found</h3>
+                  <p className="text-sm text-gray-400">Add your first user to get started</p>
                 </div>
               )}
             </div>
@@ -245,19 +245,19 @@ function App() {
 
         {/* Add User Tab */}
         {activeTab === 'add' && (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="p-4 border-b">
-              <h2 className="text-lg font-semibold">Add New User</h2>
-              <p className="text-sm text-gray-500">Enter the details to create a new user</p>
+          <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
+            <div className="p-4 border-b border-gray-700">
+              <h2 className="text-lg font-semibold text-white">Add New User</h2>
+              <p className="text-sm text-gray-400">Enter the details to create a new user</p>
             </div>
             <div className="p-4">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <label htmlFor="name" className="block text-sm font-medium">Full Name</label>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-200">Full Name</label>
                   <input
                     id="name"
                     name="name"
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="Enter user name"
                     value={formData.name}
                     onChange={handleChange}
@@ -266,12 +266,12 @@ function App() {
                 </div>
                 
                 <div className="space-y-2">
-                  <label htmlFor="email" className="block text-sm font-medium">Email Address</label>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-200">Email Address</label>
                   <input
                     id="email"
                     name="email"
                     type="email"
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="Enter email address"
                     value={formData.email}
                     onChange={handleChange}
@@ -281,7 +281,7 @@ function App() {
                 
                 <button 
                   type="submit" 
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
@@ -311,7 +311,8 @@ function App() {
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
           line-height: 1.5;
-          color: #333;
+          color: #f3f4f6;
+          background-color: #121212;
         }
         
         .container {
@@ -327,33 +328,83 @@ function App() {
           background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
         }
         
-        .from-gray-50 {
-          --tw-gradient-from: #f9fafb;
-          --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(249, 250, 251, 0));
+        .from-gray-900 {
+          --tw-gradient-from: #111827;
+          --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(17, 24, 39, 0));
         }
         
-        .to-gray-100 {
-          --tw-gradient-to: #f3f4f6;
+        .to-black {
+          --tw-gradient-to: #000000;
         }
         
-        .bg-white {
-          background-color: white;
+        .bg-gray-900 {
+          background-color: #111827;
+        }
+        
+        .bg-gray-800 {
+          background-color: #1f2937;
+        }
+        
+        .bg-gray-700 {
+          background-color: #374151;
+        }
+        
+        .text-white {
+          color: #ffffff;
+        }
+        
+        .text-gray-100 {
+          color: #f3f4f6;
+        }
+        
+        .text-gray-200 {
+          color: #e5e7eb;
+        }
+        
+        .text-gray-300 {
+          color: #d1d5db;
+        }
+        
+        .text-gray-400 {
+          color: #9ca3af;
+        }
+        
+        .text-gray-600 {
+          color: #4b5563;
+        }
+        
+        .border-gray-600 {
+          border-color: #4b5563;
+        }
+        
+        .border-gray-700 {
+          border-color: #374151;
+        }
+        
+        .border-gray-800 {
+          border-color: #1f2937;
         }
         
         .rounded-lg {
           border-radius: 0.5rem;
         }
         
-        .shadow-sm {
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        .shadow-lg {
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+        }
+        
+        .hover\\:shadow-purple-glow:hover {
+          box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
         }
         
         .border {
-          border: 1px solid #e5e7eb;
+          border-width: 1px;
+          border-style: solid;
         }
         
         .border-b {
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom-width: 1px;
+          border-bottom-style: solid;
         }
         
         .overflow-hidden {
@@ -443,44 +494,40 @@ function App() {
           font-weight: 500;
         }
         
-        .text-emerald-500 {
-          color: #10b981;
+        .text-purple-400 {
+          color: #a78bfa;
         }
         
-        .text-emerald-600 {
-          color: #059669;
+        .text-purple-500 {
+          color: #8b5cf6;
         }
         
-        .text-gray-500 {
-          color: #6b7280;
+        .border-purple-500 {
+          border-color: #8b5cf6;
         }
         
-        .text-gray-600 {
-          color: #4b5563;
+        .bg-purple-500 {
+          background-color: #8b5cf6;
         }
         
-        .text-gray-700 {
-          color: #374151;
+        .bg-purple-600 {
+          background-color: #7c3aed;
         }
         
-        .text-white {
-          color: white;
+        .hover\\:bg-purple-700:hover {
+          background-color: #6d28d9;
         }
         
-        .bg-emerald-500 {
+        .bg-green-500 {
           background-color: #10b981;
         }
         
-        .hover\\:bg-emerald-600:hover {
-          background-color: #059669;
+        .bg-red-500 {
+          background-color: #ef4444;
         }
         
-        .bg-gray-50 {
-          background-color: #f9fafb;
-        }
-        
-        .hover\\:shadow-md:hover {
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        .hover\\:text-gray-200:hover {
+          color: #e5e7eb;
         }
         
         .transition-all {
@@ -547,10 +594,6 @@ function App() {
           display: grid;
         }
         
-        .grid-cols-1 {
-          grid-template-columns: repeat(1, minmax(0, 1fr));
-        }
-        
         .animate-spin {
           animation: spin 1s linear infinite;
         }
@@ -562,10 +605,6 @@ function App() {
           to {
             transform: rotate(360deg);
           }
-        }
-        
-        .border-emerald-500 {
-          border-color: #10b981;
         }
         
         .border-t-transparent {
@@ -583,8 +622,12 @@ function App() {
           box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
         }
         
-        .focus\\:ring-emerald-500:focus {
-          --tw-ring-color: #10b981;
+        .focus\\:ring-purple-500:focus {
+          --tw-ring-color: #8b5cf6;
+        }
+        
+        .focus\\:border-transparent:focus {
+          border-color: transparent;
         }
         
         .fixed {
@@ -615,16 +658,8 @@ function App() {
           z-index: 50;
         }
         
-        .shadow-lg {
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        
-        .bg-green-500 {
-          background-color: #10b981;
-        }
-        
-        .bg-red-500 {
-          background-color: #ef4444;
+        .shadow-md {
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
         }
         
         .text-center {
