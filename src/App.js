@@ -29,8 +29,8 @@ function App() {
     <div className="App">
       <nav className="navbar navbar-light bg-light mb-2">
         <a class="navbar-brand" href="">
-          <img src="./logo_p.png" width="50" height="50" class="d-inline-block" alt="" />
-          Integration Ninja
+          <img src="" width="50" height="50" class="d-inline-block" alt="" />
+          Cloud Project
         </a>
       </nav>
       <div className='container'>
