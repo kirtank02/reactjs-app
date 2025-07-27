@@ -1,4 +1,4 @@
-name: Deploy Node Application (Legacy)
+name: Deploy Node Application
 
 on: 
   push:
